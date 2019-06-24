@@ -1,5 +1,6 @@
 from typing import Callable
 import numpy as np
+import pickle
 
 
 class GACfg(object):
@@ -28,11 +29,18 @@ class GA(object):
         self.last_fitness = [(0, 0)]
         self.early_stop_step = 0
         self.gene = [0, 0]
+        self.kwargs = {}
 
     def create_individual(self):
         return np.random.choice(
             self.cfg.gene_size, self.cfg.gene_len,
             replace=self.cfg.repeatable)
+
+    def prepare_kwargs(self, **kwargs):
+        self.kwargs = kwargs
+
+    def _get_kwargs(self):
+        return pickle.loads(pickle.dumps(self.kwargs))
 
     def init_population(self):
         self.population = []
@@ -51,7 +59,8 @@ class GA(object):
         else:
             r = range(self.cfg.pop_size)
         for i in r:
-            fitness_results[i] = self.fitness_func(self.population[i])
+            fitness_results[i] = self.fitness_func(
+                self.population[i], **self._get_kwargs())
         return sorted(fitness_results.items(),
                       key=lambda x: x[1], reverse=True)
 
